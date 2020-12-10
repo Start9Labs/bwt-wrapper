@@ -27,15 +27,7 @@ To build the project, run the following commands:
 
 On build machine:
 ```
-<!-- make -->
-wget -P ~ https://github.com/shesek/bwt/releases/download/v0.2.0/bwt-0.2.0-arm32v7.tar.gz
-tar -C ~ -zxvf ~/bwt-0.2.0-arm32v7.tar.gz
-mkdir -p bwt/target/armv7-unknown-linux-musleabihf/release/
-cp ~/bwt-0.2.0-arm32v7/bwt bwt/target/armv7-unknown-linux-musleabihf/release/
-make configurator/target/armv7-unknown-linux-musleabihf/release/configurator
-DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --tag start9/bwt --platform=linux/arm/v7 -o type=docker,dest=image.tar .
-appmgr -vv pack $(pwd) -o bwt.s9pk
-appmgr -vv verify bwt.s9pk
+make
 ```
 
 ## Installing (on Embassy)
