@@ -1,7 +1,7 @@
 use std::fs::File;
-use std::io::{Read, Write};
-use std::net::{IpAddr, SocketAddr};
-use std::path::Path;
+use std::io::Write;
+use std::net::IpAddr;
+
 
 use http::Uri;
 use serde::{
@@ -87,11 +87,6 @@ pub struct Property<T> {
     copyable: bool,
     qr: bool,
     masked: bool,
-}
-
-#[derive(serde::Deserialize)]
-pub struct XPubs {
-    xpubs: Vec<String>,
 }
 
 fn main() -> Result<(), anyhow::Error> {
