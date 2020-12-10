@@ -1,7 +1,7 @@
-FROM debian:buster-slim
+FROM alpine:3.12
 
-RUN apt update
-RUN apt install tini
+RUN apk update
+RUN apk add tini
 
 ADD ./bwt/target/armv7-unknown-linux-musleabihf/release/bwt /usr/local/bin/bwt
 ADD ./configurator/target/armv7-unknown-linux-musleabihf/release/configurator /usr/local/bin/configurator
