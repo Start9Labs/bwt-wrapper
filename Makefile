@@ -20,7 +20,7 @@ bwt.s9pk: manifest.yaml config_spec.yaml config_rules.yaml image.tar instruction
 instructions.md: README.md
 	cp README.md instructions.md
 
-image.tar: Dockerfile docker_entrypoint.sh bwt/target/armv7-unknown-linux-musleabihf/release/bwt
+image.tar: Dockerfile docker_entrypoint.sh bwt/target/armv7-unknown-linux-musleabihf/release/bwt configurator/target/armv7-unknown-linux-musleabihf/release/configurator
 	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --tag start9/bwt --platform=linux/arm/v7 -o type=docker,dest=image.tar .
 
 bwt/target/armv7-unknown-linux-musleabihf/release/bwt: $(BWT_SRC)
