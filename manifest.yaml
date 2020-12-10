@@ -51,6 +51,12 @@ dependencies:
           - PUSH:
               to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
               value: "estimatesmartfee"
+      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getaddressesbylabel"'
+        description: 'RPC user "bwt" must have "getaddressesbylabel" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+              value: "getaddressesbylabel"
       - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getbestblockhash"'
         description: 'RPC user "bwt" must have "getbestblockhash" enabled'
         suggestions:
