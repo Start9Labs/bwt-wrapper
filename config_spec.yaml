@@ -1,0 +1,93 @@
+bitcoind:
+  type: union
+  name: Bitcoin Core
+  description: |
+    The Bitcoin Core node to connect to:
+      - internal: The Bitcoin Core and Proxy services installed to your Embassy
+      - external: An unpruned Bitcoin Core node running on a different device
+      - quick-connect: A Quick Connect URL for an unpruned Bitcoin Core node
+  tag: type
+  default: internal
+  variants:
+    internal:
+      rpc-address:
+        type: pointer
+        name: Local RPC Address
+        description: The LAN IP address of your Bitcoin Proxy service
+        subtype: app
+        app-id: btc-rpc-proxy
+        target: lan-address
+      user:
+        type: pointer
+        name: RPC Username
+        description: The username for the RPC user allocated to bwt
+        subtype: app
+        app-id: btc-rpc-proxy
+        target: config
+        index: 'users.[first(item => ''item.name = "bwt")].name'
+      password:
+        type: pointer
+        name: RPC Password
+        description: The password for the RPC user allocated to bwt
+        subtype: app
+        app-id: btc-rpc-proxy
+        target: config
+        index: 'users.[first(item => ''item.name = "bwt")].password'
+    external:
+      host:
+        type: string
+        name: Public Address
+        description: The public address of your Bitcoin Core server
+        nullable: false
+      rpc-user:
+        type: string
+        name: RPC Username
+        description: The username for the RPC user on your Bitcoin Core RPC server
+        nullable: false
+      rpc-password:
+        type: string
+        name: RPC Password
+        description: The password for the RPC user on your Bitcoin Core RPC server
+        nullable: false
+      rpc-port:
+        type: number
+        name: RPC Port
+        description: The port that your Bitcoin Core RPC server is bound to
+        nullable: false
+        range: "[0,65535]"
+        integral: true
+        default: 8332
+    quick-connect:
+      quick-connect-url:
+        type: string
+        name: Quick Connect URL
+        description: |
+          The Quick Connect URL for your Bitcoin Core RPC server
+          NOTE: BWT will not accept a .onion url for this option
+        nullable: false
+        pattern: 'btcstandup://[^:]*:[^@]*@[a-zA-Z0-9.-]+:[0-9]+(/(\?(label=.+)?)?)?'
+        patternDescription: Must be a valid Quick Connect URL. For help, check out https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Quick-Connect-API.md
+xpubs:
+  type: list
+  name: Extended Public Keys
+  description: Public key for wallet to track
+  range: "[0,*)"
+  subtype: string
+  default: []
+  spec:
+    key: 
+      type: string
+      name: Extended Public Key
+      description: The extended public key for the wallet to track
+      default: "xpub..."
+      nullable: false
+      copyable: true
+
+rescan-since:
+  type: string
+  name: Rescan Date
+  description: |
+          Start date for wallet history rescan. Accepts YYYY-MM-DD formatted strings, unix timestamps, or 'now' to
+          watch for new transactions only  [default: 0]
+  default: "now"
+  nullable: true

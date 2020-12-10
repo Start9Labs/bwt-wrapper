@@ -1,0 +1,124 @@
+compat: v0
+id: bwt
+version: 0.2.0
+title: Bitcoin Wallet Tracker
+description:
+  short: "A lightweight wallet descriptor/xpub tracker and query engine for Bitcoin, implemented in Rust."
+  long: "bwt is a lightweight and performant descriptor-based wallet indexer backed by a bitcoin full node, using a model similar to that of Electrum Personal Server. It can serve as a personal alternative to public Electrum servers or power bitcoin apps such as wallet backends, payment processors and more.
+    It uses bitcoind to keep track of your wallet addresses (derived from your xpub(s)) and builds an index of their history that can be queried using the Electrum RPC protocol or using bwt's custom designed HTTP API.
+
+    Real-time updates are available through Server-Sent events (a streaming long-lived HTTP connection), or using Web Hooks push updates (an HTTP request sent to your URL with the event).
+
+    The index is currently managed in-memory and does not get persisted (this is expected to change), but building it is pretty fast: bwt can index thousands of transactions in a matter of seconds.
+
+    TL;DR: EPS + Rust + Modern HTTP API"
+release-notes: https://github.com/shesek/bwt/releases/tag/v0.2.0
+ports:
+  - internal: 3060
+    tor: 3060
+  - internal: 50001
+    tor: 50001
+image:
+  type: tar
+mount: /root
+has-instructions: false
+os-version-required: ">=0.2.0"
+os-version-recommended: ">=0.2.0"
+assets: []
+hidden-service-version: v3
+dependencies:
+  btc-rpc-proxy:
+    version: "^0.2.0"
+    optional: Can alternatively configure an external bitcoin node.
+    description: Used to fetch validated blocks.
+    config:
+      - rule: '''users.*.name = "lnd"'
+        description: 'Must have an RPC user named "lnd"'
+        suggestions:
+          - PUSH:
+              to: "users"
+              value:
+                name: lnd
+                allowed-calls: []
+          - SET:
+              var: 'users.[first(item => ''item.name = "lnd")].password'
+              to-entropy:
+                charset: "a-z,A-Z,0-9"
+                len: 22
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getinfo"'
+        description: 'RPC user "lnd" must have "getinfo" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getinfo"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getbestblockhash"'
+        description: 'RPC user "lnd" must have "getbestblockhash" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getbestblockhash"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "gettxout"'
+        description: 'RPC user "lnd" must have "gettxout" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "gettxout"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getblockchaininfo"'
+        description: 'RPC user "lnd" must have "getblockchaininfo" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getblockchaininfo"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "sendrawtransaction"'
+        description: 'RPC user "lnd" must have "sendrawtransaction" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "sendrawtransaction"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getblockhash"'
+        description: 'RPC user "lnd" must have "getblockhash" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getblockhash"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getblock"'
+        description: 'RPC user "lnd" must have "getblock" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getblock"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getblockheader"'
+        description: 'RPC user "lnd" must have "getblockheader" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getblockheader"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "estimatesmartfee"'
+        description: 'RPC user "lnd" must have "estimatesmartfee" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "estimatesmartfee"
+      - rule: '''users.[first(item => ''item.name = "lnd")].allowed-calls.* = "getnetworkinfo"'
+        description: 'RPC user "lnd" must have "getnetworkinfo" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "lnd")].allowed-calls'
+              value: "getnetworkinfo"
+      - rule: 'users.[first(item => ''item.name = "lnd")].fetch-blocks?'
+        description: 'RPC user "lnd" must have "Fetch Blocks" enabled'
+        suggestions:
+          - SET:
+              var: 'users.[first(item => ''item.name = "lnd")].fetch-blocks'
+              to-value: true
+  bitcoind:
+    version: "^0.20.1.1"
+    optional: Can alternatively configure an external bitcoin node.
+    description: Used to subscribe to new block events.
+    config:
+      - rule: "zmq-enabled?"
+        description: "Must have an ZeroMQ enabled"
+        suggestions:
+          - SET:
+              var: "zmq-enabled"
+              to-value: true
