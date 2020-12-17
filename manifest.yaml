@@ -153,6 +153,12 @@ dependencies:
           - PUSH:
               to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
               value: "listsinceblock"
+      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "loadwallet"'
+        description: 'RPC user "bwt" must have "loadwallet" enabled'
+        suggestions:
+          - PUSH:
+              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+              value: "loadwallet"
       - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "uptime"'
         description: 'RPC user "bwt" must have "uptime" enabled'
         suggestions:

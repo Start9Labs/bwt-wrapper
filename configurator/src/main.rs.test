@@ -129,7 +129,7 @@ pub struct CipherSeedMnemonic {
 fn main() -> Result<(), anyhow::Error> {
     let config: Config = serde_yaml::from_reader(File::open("/home/cguida/config.yaml")?)?;
     // let tor_address = std::env::var("TOR_ADDRESS")?;
-    let tor_address = "ueucsgjpsfkcfn3z4zinibihejaje2oh22buu6u46czjyqkexajdskad.onion";
+    // let tor_address = "ueucsgjpsfkcfn3z4zinibihejaje2oh22buu6u46czjyqkexajdskad.onion";
     {
         let mut outfile = std::io::stdout();
 
@@ -201,22 +201,8 @@ fn main() -> Result<(), anyhow::Error> {
             bitcoin_rpc_pass = bitcoin_rpc_pass,
             bitcoin_rpc_host = bitcoin_rpc_host,
             bitcoin_rpc_port = bitcoin_rpc_port,
-            bitcoin_zmq_host = bitcoin_zmq_host,
-            bitcoin_zmq_block_port = bitcoin_zmq_block_port,
-            bitcoin_zmq_tx_port = bitcoin_zmq_tx_port,
-            tor_address = tor_address,
-            tor_proxy = tor_proxy,
-            payments_expiration_grace_period = config.advanced.payments_expiration_grace_period,
-            autopilot_enabled = config.autopilot.enabled,
-            autopilot_maxchannels = config.autopilot.maxchannels,
-            autopilot_allocation = config.autopilot.allocation / 100.0,
-            autopilot_min_channel_size = config.autopilot.min_channel_size,
-            autopilot_max_channel_size = config.autopilot.max_channel_size,
-            autopilot_private = config.autopilot.private,
-            autopilot_min_confirmations = config.autopilot.advanced.min_confirmations,
-            autopilot_confirmation_target = config.autopilot.advanced.confirmation_target,
-            watchtower_enabled = config.watchtower_enabled,
-            watchtower_client_enabled = config.watchtower_client_enabled,
+            rescan_since = rescan_since,
+            xpubs = xpubs,
         )?;
     }
     // #[cfg(target_os = "linux")]

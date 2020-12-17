@@ -67,10 +67,18 @@ bitcoind:
         nullable: false
         pattern: 'btcstandup://[^:]*:[^@]*@[a-zA-Z0-9.-]+:[0-9]+(/(\?(label=.+)?)?)?'
         patternDescription: Must be a valid Quick Connect URL. For help, check out https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Quick-Connect-API.md
+# https://help.blockonomics.co/support/solutions/articles/33000248743-bitcoin-wallet-and-xpub
 xpubs:
   type: list
-  name: Extended Public Keys
-  description: Public key for wallet to track
+  name: Standard Extended Public Keys
+  description: |
+    A list of standard extended public keys, each corresponding to a wallet to track. 
+    Extended public keys begin with:
+      "xpub" for P2PKH wallets (contains addresses beginning with 1)
+      "ypub" for P2SH-P2WPKH wallets ("Segwit backwards compatible") (contains addresses beginning with 3)
+      "zpub" for P2WPKH wallets ("bech32") (for wallets with addresses beginning with bc1)
+
+    Standard extended pubkeys are the root of a tree 
   range: "[0,*)"
   subtype: string
   default: []
@@ -82,7 +90,43 @@ xpubs:
       default: "xpub..."
       nullable: false
       copyable: true
+bare-xpubs:
+  type: list
+  name: Bare Extended Public Keys
+  description: |
+    A list of bare extended public keys, each corresponding to a wallet to track. 
+    Extended public keys begin with:
+      "xpub" for P2PKH wallets (contains addresses beginning with 1)
+      "ypub" for P2SH-P2WPKH wallets ("Segwit backwards compatible") (contains addresses beginning with 3)
+      "zpub" for P2WPKH wallets ("bech32") (for wallets with addresses beginning with bc1)
 
+    "Bare" extended pubkeys are pubkeys which track
+  range: "[0,*)"
+  subtype: string
+  default: []
+  spec:
+    key: 
+      type: string
+      name: Extended Public Key
+      description: The bare extended public key for the wallet to track
+      default: "xpub..."
+      nullable: false
+      copyable: true
+descriptors:
+  type: list
+  name: Wallet Desciptors
+  description: Descriptor for wallet to track
+  range: "[0,*)"
+  subtype: string
+  default: []
+  spec:
+    key: 
+      type: string
+      name: Wallet Desciptor
+      description: The descriptor for the wallet to track
+      default: "wpkh(xpub../0/*);wpkh(xpub../1/*)"
+      nullable: false
+      copyable: true
 rescan-since:
   type: string
   name: Rescan Date
@@ -90,4 +134,11 @@ rescan-since:
           Start date for wallet history rescan. Accepts YYYY-MM-DD formatted strings, unix timestamps, or 'now' to
           watch for new transactions only  [default: 0]
   default: "now"
+  nullable: true
+bitcoind-wallet:
+  type: string
+  name: Bitcoind Wallet Name
+  description: |
+          Name of the wallet to use inside bitcoind
+  default: "bwt"
   nullable: true

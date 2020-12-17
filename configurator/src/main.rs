@@ -38,7 +38,10 @@ fn parse_quick_connect_url(url: Uri) -> Result<(String, String, String, u16), an
 struct Config {
     bitcoind: BitcoinCoreConfig,
     xpubs: Vec<String>,
+    bare_xpubs: Vec<String>,
+    descriptors: Vec<String>,
     rescan_since: String,
+    bitcoind_wallet: String,
 }
 
 #[derive(serde::Deserialize)]
@@ -136,6 +139,26 @@ fn main() -> Result<(), anyhow::Error> {
             }
         };
 
+        let mut xpubs: String = "".to_string();
+        if !config.xpubs.is_empty() {
+            xpubs = format!("XPUBS='{}'", config.xpubs.join(";"));
+        }
+
+        let mut bare_xpubs: String = "".to_string();
+        if !config.bare_xpubs.is_empty() {
+            bare_xpubs = format!("BARE_XPUBS='{}'", config.bare_xpubs.join(";"));
+        }
+
+        let mut descriptors: String = "".to_string();
+        if !config.descriptors.is_empty() {
+            descriptors = format!("DESCRIPTORS='{}'", config.descriptors.join(";"));
+        }
+
+        let mut bitcoind_wallet: String = "".to_string();
+        if !config.bitcoind_wallet.is_empty() {
+            bitcoind_wallet = format!("BITCOIND_WALLET='{}'", config.bitcoind_wallet);
+        }
+
         write!(
             outfile,
             include_str!("bwt.env.template"),
@@ -144,7 +167,10 @@ fn main() -> Result<(), anyhow::Error> {
             bitcoin_rpc_host = bitcoin_rpc_host,
             bitcoin_rpc_port = bitcoin_rpc_port,
             rescan_since = config.rescan_since,
-            xpubs = format!("'{}'", config.xpubs.join(";")),
+            xpubs = xpubs,
+            bare_xpubs = bare_xpubs,
+            descriptors = descriptors,
+            bitcoind_wallet = bitcoind_wallet,
         )?;
     }
 
