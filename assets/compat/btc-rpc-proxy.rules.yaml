@@ -1,0 +1,151 @@
+- rule: '''users.*.name = "bwt"'
+  description: 'Must have an RPC user named "bwt"'
+  suggestions:
+    - PUSH:
+        to: "users"
+        value:
+          name: bwt
+          allowed-calls: []
+    - SET:
+        var: 'users.[first(item => ''item.name = "bwt")].password'
+        to-entropy:
+          charset: "a-z,A-Z,0-9"
+          len: 22
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "createwallet"'
+  description: 'RPC user "bwt" must have "createwallet" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "createwallet"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "estimatesmartfee"'
+  description: 'RPC user "bwt" must have "estimatesmartfee" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "estimatesmartfee"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getaddressesbylabel"'
+  description: 'RPC user "bwt" must have "getaddressesbylabel" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getaddressesbylabel"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getbestblockhash"'
+  description: 'RPC user "bwt" must have "getbestblockhash" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getbestblockhash"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockchaininfo"'
+  description: 'RPC user "bwt" must have "getblockchaininfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblockchaininfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockcount"'
+  description: 'RPC user "bwt" must have "getblockcount" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblockcount"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockhash"'
+  description: 'RPC user "bwt" must have "getblockhash" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblockhash"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockheader"'
+  description: 'RPC user "bwt" must have "getblockheader" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblockheader"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockstats"'
+  description: 'RPC user "bwt" must have "getblockstats" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblockstats"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getinfo"'
+  description: 'RPC user "bwt" must have "getinfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getinfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getmempoolinfo"'
+  description: 'RPC user "bwt" must have "getmempoolinfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getmempoolinfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnettotals"'
+  description: 'RPC user "bwt" must have "getnettotals" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getnettotals"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnetworkhashps"'
+  description: 'RPC user "bwt" must have "getnetworkhashps" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getnetworkhashps"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnetworkinfo"'
+  description: 'RPC user "bwt" must have "getnetworkinfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getnetworkinfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getpeerinfo"'
+  description: 'RPC user "bwt" must have "getpeerinfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getpeerinfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getrawmempool"'
+  description: 'RPC user "bwt" must have "getrawmempool" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getrawmempool"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "gettransaction"'
+  description: 'RPC user "bwt" must have "gettransaction" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "gettransaction"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getwalletinfo"'
+  description: 'RPC user "bwt" must have "getwalletinfo" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getwalletinfo"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "importmulti"'
+  description: 'RPC user "bwt" must have "importmulti" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "importmulti"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "listlabels"'
+  description: 'RPC user "bwt" must have "listlabels" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "listlabels"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "listsinceblock"'
+  description: 'RPC user "bwt" must have "listsinceblock" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "listsinceblock"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "loadwallet"'
+  description: 'RPC user "bwt" must have "loadwallet" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "loadwallet"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "uptime"'
+  description: 'RPC user "bwt" must have "uptime" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "uptime"

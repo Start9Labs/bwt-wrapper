@@ -1,7 +1,5 @@
 use std::fs::File;
 use std::io::Write;
-use std::net::IpAddr;
-
 
 use http::Uri;
 use serde::{
@@ -36,7 +34,9 @@ fn parse_quick_connect_url(url: Uri) -> Result<(String, String, String, u16), an
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct Config {
+    auth_token: String,
     bitcoind: BitcoinCoreConfig,
+    create_wallet_if_missing: bool,
     xpubs: Vec<String>,
     bare_xpubs: Vec<String>,
     descriptors: Vec<String>,
@@ -49,11 +49,7 @@ struct Config {
 #[serde(rename_all = "kebab-case")]
 enum BitcoinCoreConfig {
     #[serde(rename_all = "kebab-case")]
-    Internal {
-        rpc_address: IpAddr,
-        user: String,
-        password: String,
-    },
+    Internal { user: String, password: String },
     #[serde(rename_all = "kebab-case")]
     External {
         #[serde(deserialize_with = "deserialize_parse")]
@@ -98,46 +94,38 @@ fn main() -> Result<(), anyhow::Error> {
     {
         let mut outfile = File::create("/root/bwt.env")?;
 
-        let (
-            bitcoin_rpc_user,
-            bitcoin_rpc_pass,
-            bitcoin_rpc_host,
-            bitcoin_rpc_port,
-        ) = match config.bitcoind {
-            BitcoinCoreConfig::Internal {
-                rpc_address,
-                user,
-                password,
-            } => (
-                user,
-                password,
-                format!("{}", rpc_address),
-                8332,
-            ),
-            BitcoinCoreConfig::External {
-                host,
-                rpc_user,
-                rpc_password,
-                rpc_port,
-            } => (
-                rpc_user,
-                rpc_password,
-                format!("{}", host.host().unwrap()),
-                rpc_port,
-            ),
-            BitcoinCoreConfig::QuickConnect {
-                quick_connect_url,
-            } => {
-                let (bitcoin_rpc_user, bitcoin_rpc_pass, bitcoin_rpc_host, bitcoin_rpc_port) =
-                    parse_quick_connect_url(quick_connect_url)?;
-                (
-                    bitcoin_rpc_user,
-                    bitcoin_rpc_pass,
-                    bitcoin_rpc_host.clone(),
-                    bitcoin_rpc_port,
-                )
-            }
-        };
+        let (bitcoin_rpc_user, bitcoin_rpc_pass, bitcoin_rpc_host, bitcoin_rpc_port) =
+            match config.bitcoind {
+                BitcoinCoreConfig::Internal { user, password } => {
+                    (user, password, format!("{}", "btc-rpc-proxy.embassy"), 8332)
+                }
+                BitcoinCoreConfig::External {
+                    host,
+                    rpc_user,
+                    rpc_password,
+                    rpc_port,
+                } => (
+                    rpc_user,
+                    rpc_password,
+                    format!("{}", host.host().unwrap()),
+                    rpc_port,
+                ),
+                BitcoinCoreConfig::QuickConnect { quick_connect_url } => {
+                    let (bitcoin_rpc_user, bitcoin_rpc_pass, bitcoin_rpc_host, bitcoin_rpc_port) =
+                        parse_quick_connect_url(quick_connect_url)?;
+                    (
+                        bitcoin_rpc_user,
+                        bitcoin_rpc_pass,
+                        bitcoin_rpc_host.clone(),
+                        bitcoin_rpc_port,
+                    )
+                }
+            };
+
+        let mut create_wallet_if_missing: String = "".to_string();
+        if config.create_wallet_if_missing {
+            create_wallet_if_missing = format!("CREATE_WALLET_IF_MISSING=1");
+        }
 
         let mut xpubs: String = "".to_string();
         if !config.xpubs.is_empty() {
@@ -162,11 +150,13 @@ fn main() -> Result<(), anyhow::Error> {
         write!(
             outfile,
             include_str!("bwt.env.template"),
+            auth_token = config.auth_token,
             bitcoin_rpc_user = bitcoin_rpc_user,
             bitcoin_rpc_pass = bitcoin_rpc_pass,
             bitcoin_rpc_host = bitcoin_rpc_host,
             bitcoin_rpc_port = bitcoin_rpc_port,
             rescan_since = config.rescan_since,
+            create_wallet_if_missing = create_wallet_if_missing,
             xpubs = xpubs,
             bare_xpubs = bare_xpubs,
             descriptors = descriptors,

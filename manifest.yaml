@@ -1,167 +1,240 @@
-compat: v0
 id: bwt
-version: 0.2.0
 title: Bitcoin Wallet Tracker
+version: 0.2.4
+release-notes: https://github.com/bwt-dev/bwt/releases/tag/v0.2.4
+license: mit
+wrapper-repo: https://github.com/Start9Labs/bwt-wrapper
+upstream-repo: https://github.com/bwt-dev/bwt
+support-site: https://github.com/bwt-dev/bwt/issues
+marketing-site: https://bwt.dev
+build: ["make"]
+min-os-version: 0.3.0
 description:
   short: "A lightweight wallet descriptor/xpub tracker and query engine for Bitcoin, implemented in Rust."
-  long: "bwt is a lightweight and performant descriptor-based wallet indexer backed by a bitcoin full node, using a model similar to that of Electrum Personal Server. It can serve as a personal alternative to public Electrum servers or power bitcoin apps such as wallet backends, payment processors and more.
-    It uses bitcoind to keep track of your wallet addresses (derived from your xpub(s)) and builds an index of their history that can be queried using the Electrum RPC protocol or using bwt's custom designed HTTP API.
-
+  long: |
+    bwt is a lightweight and performant descriptor-based wallet indexer backed by a bitcoin full node, using a model similar to that of Electrum Personal Server. It can serve as a personal alternative to public Electrum servers or power bitcoin apps such as wallet backends, payment processors and more.
+    It uses bitcoind to keep track of your wallet addresses (derived from your xpub(s)) and builds an index of their history that can be queried using the Electrum RPC protocol or using bwts custom designed HTTP API.
     Real-time updates are available through Server-Sent events (a streaming long-lived HTTP connection), or using Web Hooks push updates (an HTTP request sent to your URL with the event).
-
     The index is currently managed in-memory and does not get persisted (this is expected to change), but building it is pretty fast: bwt can index thousands of transactions in a matter of seconds.
-
-    TL;DR: EPS + Rust + Modern HTTP API"
-release-notes: https://github.com/shesek/bwt/releases/tag/v0.2.0
-ports:
-  - internal: 3060
-    tor: 3060
-  - internal: 50001
-    tor: 50001
-image:
-  type: tar
-mount: /root
-has-instructions: true
-os-version-required: ">=0.2.5"
-os-version-recommended: ">=0.2.5"
-assets: []
-hidden-service-version: v3
+    TL;DR: EPS + Rust + Modern HTTP API
+assets:
+  license: LICENSE
+  icon: icon.png
+  instructions: instructions.md
+  docker-images: image.tar
+main:
+  type: docker
+  image: main
+  entrypoint: "docker_entrypoint.sh"
+  args: []
+  mounts:
+    main: /root
+    compat: /mnt/assets
+  io-format: yaml
+health-checks: {}
+  # rpc:
+  #   type: docker
+  #   image: main
+  #   system: false
+  #   entrypoint: bitcoin-cli
+  #   args:
+  #     - "-rpcconnect=bitcoind.embassy"
+  #     - "-getinfo"
+  #   mounts: {}
+  #   io-format: yaml
+  #   critical: false
+  #   inject: true
+  # synced:
+  #   type: docker
+  #   image: utils
+  #   system: true
+  #   entrypoint: /mnt/assets/check-synced.sh
+  #   args: []
+  #   mounts:
+  #     main: /root/.bitcoin
+  #     utils: /mnt/assets
+  #   io-format: yaml
+  #   critical: false
+config:
+  get:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args: 
+      - config
+      - get
+      - /root
+      - "/mnt/assets/config_spec.yaml"
+    mounts:
+      compat: /mnt/assets
+      main: /root
+    io-format: yaml
+  set:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - config
+      - set
+      - bwt
+      - /root
+      - "/mnt/assets/config_rules.yaml"
+    mounts:
+      compat: /mnt/assets
+      main: /root
+    io-format: yaml
+# properties:
+#   type: docker
+#   image: compat
+#   system: true
+#   entrypoint: compat
+#   args:
+#     - properties
+#     - /root
+#   mounts:
+#     main: /root
+#   io-format: yaml
+volumes:
+  main:
+    type: data
+  compat:
+    type: assets
+interfaces:
+  http:
+    name: HTTP REST API
+    description: Listens for JSON-RPC commands
+    tor-config:
+      port-mapping:
+        3060: "3060"
+    lan-config:
+      3060:
+        ssl: false
+        mapping: 3060
+    ui: false
+    protocols:
+      - tcp
+      - http
+  electrum:
+    name: Electrum Interface
+    description: Serves an electrum API for use with compatible wallets
+    tor-config:
+      port-mapping:
+        50001: "50001"
+    lan-config:
+      50001:
+        ssl: false
+        mapping: 50001
+    ui: false
+    protocols:
+      - tcp
+      - electrum
 dependencies:
-  btc-rpc-proxy:
-    version: "^0.2.0"
-    optional: Can alternatively configure an external bitcoin node.
-    description: Used to fetch validated blocks.
+  bitcoind:
+    version: "^0.21.1.2"
+    requirement:
+      type: "opt-out"
+      how: Can alternatively configure an external bitcoin node.
+    critical: false
+    description: BWT tracks wallets inside bitcoin core.
     config:
-      - rule: '''users.*.name = "bwt"'
-        description: 'Must have an RPC user named "bwt"'
-        suggestions:
-          - PUSH:
-              to: "users"
-              value:
-                name: bwt
-                allowed-calls: []
-          - SET:
-              var: 'users.[first(item => ''item.name = "bwt")].password'
-              to-entropy:
-                charset: "a-z,A-Z,0-9"
-                len: 22
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "estimatesmartfee"'
-        description: 'RPC user "bwt" must have "estimatesmartfee" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "estimatesmartfee"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getaddressesbylabel"'
-        description: 'RPC user "bwt" must have "getaddressesbylabel" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getaddressesbylabel"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getbestblockhash"'
-        description: 'RPC user "bwt" must have "getbestblockhash" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getbestblockhash"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockchaininfo"'
-        description: 'RPC user "bwt" must have "getblockchaininfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getblockchaininfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockcount"'
-        description: 'RPC user "bwt" must have "getblockcount" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getblockcount"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockhash"'
-        description: 'RPC user "bwt" must have "getblockhash" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getblockhash"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockstats"'
-        description: 'RPC user "bwt" must have "getblockstats" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getblockstats"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getinfo"'
-        description: 'RPC user "bwt" must have "getinfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getinfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getmempoolinfo"'
-        description: 'RPC user "bwt" must have "getmempoolinfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getmempoolinfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnettotals"'
-        description: 'RPC user "bwt" must have "getnettotals" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getnettotals"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnetworkhashps"'
-        description: 'RPC user "bwt" must have "getnetworkhashps" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getnetworkhashps"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getnetworkinfo"'
-        description: 'RPC user "bwt" must have "getnetworkinfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getnetworkinfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getpeerinfo"'
-        description: 'RPC user "bwt" must have "getpeerinfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getpeerinfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "gettransaction"'
-        description: 'RPC user "bwt" must have "gettransaction" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "gettransaction"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getwalletinfo"'
-        description: 'RPC user "bwt" must have "getwalletinfo" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "getwalletinfo"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "importmulti"'
-        description: 'RPC user "bwt" must have "importmulti" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "importmulti"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "listlabels"'
-        description: 'RPC user "bwt" must have "listlabels" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "listlabels"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "listsinceblock"'
-        description: 'RPC user "bwt" must have "listsinceblock" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "listsinceblock"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "loadwallet"'
-        description: 'RPC user "bwt" must have "loadwallet" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "loadwallet"
-      - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "uptime"'
-        description: 'RPC user "bwt" must have "uptime" enabled'
-        suggestions:
-          - PUSH:
-              to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
-              value: "uptime"
+      check: 
+        type: docker
+        image: compat
+        system: true
+        entrypoint: compat
+        args:
+          - dependency
+          - check
+          - bwt
+          - bitcoind
+          - /root
+          - "/mnt/assets/bitcoind_config_rules.yaml"
+        mounts:
+          compat: /mnt/assets
+          main: /root
+        io-format: yaml
+      auto-configure:
+        type: docker
+        image: compat
+        system: true
+        entrypoint: compat
+        args:
+          - dependency
+          - "auto-configure"
+          - bwt
+          - bitcoind
+          - /root
+          - "/mnt/assets/bitcoind_config_rules.yaml"
+        mounts:
+          compat: /mnt/assets
+          main: /root
+        io-format: yaml
+  btc-rpc-proxy:
+    version: "^0.3.0"
+    requirement:
+      type: "opt-out"
+      how: Can alternatively configure an external bitcoin node.
+    critical: false
+    description: Control access to rpc commands and fetch, via the peer protocol, validated blocks that were previously pruned.
+    config:
+      check: 
+        type: docker
+        image: compat
+        system: true
+        entrypoint: compat
+        args:
+          - dependency
+          - check
+          - "bwt"
+          - btc-rpc-proxy
+          - /root
+          - "/mnt/assets/btc-rpc-proxy.rules.yaml"
+        mounts:
+          compat: /mnt/assets
+          main: /root
+        io-format: yaml
+      auto-configure:
+        type: docker
+        image: compat
+        system: true
+        entrypoint: compat
+        args:
+          - dependency
+          - "auto-configure"
+          - "bwt"
+          - btc-rpc-proxy
+          - /root
+          - "/mnt/assets/btc-rpc-proxy.rules.yaml"
+        mounts:
+          compat: /mnt/assets
+          main: /root
+        io-format: yaml
+backup:
+  create:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - create
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data
+  restore:
+    type: docker
+    image: compat
+    system: true
+    entrypoint: compat
+    args:
+      - duplicity
+      - restore
+      - /mnt/backup
+      - /root/data
+    mounts:
+      BACKUP: /mnt/backup
+      main: /root/data

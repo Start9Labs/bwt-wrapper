@@ -1,3 +1,15 @@
+auth-token:
+  type: string
+  name: Auth Token
+  description: Token for authenticating to BWT's HTTP API
+  nullable: false
+  pattern: '^[^\n:]+$'
+  pattern-description: May not contain newline or ":"
+  copyable: true
+  masked: true
+  default:
+    charset: a-z,A-Z,0-9
+    len: 22
 bitcoind:
   type: union
   name: Bitcoin Core
@@ -10,29 +22,26 @@ bitcoind:
   default: internal
   variants:
     internal:
-      rpc-address:
-        type: pointer
-        name: Local RPC Address
-        description: The LAN IP address of your Bitcoin Proxy service
-        subtype: app
-        app-id: btc-rpc-proxy
-        target: lan-address
       user:
         type: pointer
         name: RPC Username
         description: The username for the RPC user allocated to bwt
-        subtype: app
-        app-id: btc-rpc-proxy
+        subtype: package
+        package-id: btc-rpc-proxy
         target: config
-        index: 'users.[first(item => ''item.name = "bwt")].name'
+        # index: 'users.[first(item => ''item.name = "bwt")].name'
+        selector: '$.users[?(@.name == "bwt")].name'
+        multi: false
       password:
         type: pointer
         name: RPC Password
         description: The password for the RPC user allocated to bwt
-        subtype: app
-        app-id: btc-rpc-proxy
+        subtype: package
+        package-id: btc-rpc-proxy
         target: config
-        index: 'users.[first(item => ''item.name = "bwt")].password'
+        # index: 'users.[first(item => ''item.name = "bwt")].password'
+        selector: '$.users[?(@.name == "bwt")].password'
+        multi: false
     external:
       host:
         type: string
@@ -66,7 +75,7 @@ bitcoind:
           NOTE: BWT will not accept a .onion url for this option
         nullable: false
         pattern: 'btcstandup://[^:]*:[^@]*@[a-zA-Z0-9.-]+:[0-9]+(/(\?(label=.+)?)?)?'
-        patternDescription: Must be a valid Quick Connect URL. For help, check out https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Quick-Connect-API.md
+        pattern-description: Must be a valid Quick Connect URL. For help, check out https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Quick-Connect-API.md
 # https://help.blockonomics.co/support/solutions/articles/33000248743-bitcoin-wallet-and-xpub
 xpubs:
   type: list
@@ -142,3 +151,8 @@ bitcoind-wallet:
           Name of the wallet to use inside bitcoind
   default: "bwt"
   nullable: true
+create-wallet-if-missing:
+  type: boolean
+  name: Create Wallet If Missing
+  description: If enabled, this option will automatically create, inside bitcoin core's data directory, the wallet specified in "Bitcoind Wallet Name"
+  default: true
