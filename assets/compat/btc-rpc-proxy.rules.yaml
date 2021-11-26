@@ -35,6 +35,12 @@
     - PUSH:
         to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
         value: "getbestblockhash"
+- rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblock"'
+  description: 'RPC user "bwt" must have "getblock" enabled'
+  suggestions:
+    - PUSH:
+        to: 'users.[first(item => ''item.name = "bwt")].allowed-calls'
+        value: "getblock"
 - rule: '''users.[first(item => ''item.name = "bwt")].allowed-calls.* = "getblockchaininfo"'
   description: 'RPC user "bwt" must have "getblockchaininfo" enabled'
   suggestions:
